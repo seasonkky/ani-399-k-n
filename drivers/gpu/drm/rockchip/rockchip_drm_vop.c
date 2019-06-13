@@ -1374,6 +1374,7 @@ static void vop_crtc_disable(struct drm_crtc *crtc)
 
 	vop_lock(vop);
 	drm_crtc_vblank_off(crtc);
+	VOP_CTRL_SET(vop, afbdc_en, 0);
 	vop_disable_all_planes(vop);
 
 	/*
