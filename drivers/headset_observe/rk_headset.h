@@ -1,4 +1,3 @@
-/* SPDX-License-Identifier: GPL-2.0 */
 #ifndef RK_HEADSET_H
 #define RK_HEADSET_H
 
@@ -26,6 +25,8 @@ struct rk_headset_pdata{
 };
 
 #define HOOK_KEY_CODE KEY_MEDIA
+#define HOOK_KEY_VALUE_UP KEY_VOLUMEUP
+#define HOOK_KEY_VALUE_DOWN KEY_VOLUMEDOWN
 
 extern int rk_headset_probe(struct platform_device *pdev,struct rk_headset_pdata *pdata);
 extern int rk_headset_adc_probe(struct platform_device *pdev,struct rk_headset_pdata *pdata);
