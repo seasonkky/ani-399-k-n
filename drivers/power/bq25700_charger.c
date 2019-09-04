@@ -652,7 +652,7 @@ static int bq25700_get_chip_state(struct bq25700_device *charger,
 	};
 
 	for (i = 0; i < ARRAY_SIZE(state_fields); i++) {
-		ret = bq25700_field_read(charger, state_fields[i].id);
+		ret = bq25700_field_read(charger, state_fields[i].id);		
 		if (ret < 0)
 			return ret;
 
@@ -1234,11 +1234,11 @@ static irqreturn_t bq25700_irq_handler_thread(int irq, void *private)
 	struct bq25700_device *charger = private;
 	int irq_flag;
 	struct bq25700_state state;
-
+	
 	if (bq25700_field_read(charger, AC_STAT)) {
-		irq_flag = IRQF_TRIGGER_LOW;
+		irq_flag = IRQF_TRIGGER_HIGH;	
 	} else {
-		irq_flag = IRQF_TRIGGER_HIGH;
+		irq_flag = IRQF_TRIGGER_LOW;
 		bq25700_field_write(charger, INPUT_CURRENT,
 				    charger->init_data.input_current_sdp);
 		bq25700_disable_charge(charger);
@@ -1246,11 +1246,10 @@ static irqreturn_t bq25700_irq_handler_thread(int irq, void *private)
 		charger->state = state;
 		power_supply_changed(charger->supply_charger);
 		charger->typec0_status = USB_STATUS_NONE;
-		charger->typec1_status = USB_STATUS_NONE;
+		charger->typec1_status = USB_STATUS_NONE;	
 	}
 	irq_set_irq_type(irq, irq_flag | IRQF_ONESHOT);
-	rk_send_wakeup_key();
-
+	rk_send_wakeup_key();	
 	return IRQ_HANDLED;
 }
 
@@ -1397,11 +1396,11 @@ static void bq25700_charger_evt_handel(struct bq25700_device *charger,
 {
 	struct bq25700_state state;
 	enum charger_t charger_state = USB_TYPE_UNKNOWN_CHARGER;
-
+	
 	if (charger->typec0_status == USB_STATUS_PD ||
 	    charger->typec1_status == USB_STATUS_PD)
 		return;
-
+	
 	/* Determine cable/charger type */
 	if (extcon_get_cable_state_(edev, EXTCON_CHG_USB_SDP) > 0) {
 		charger_state = USB_TYPE_USB_CHARGER;
@@ -1435,14 +1434,13 @@ static void bq25700_charger_evt_handel(struct bq25700_device *charger,
 	}
 
 	bq25700_get_chip_state(charger, &state);
-	charger->state = state;
+	charger->state = state;	
 	power_supply_changed(charger->supply_charger);
 }
 
 static void bq25700_charger_usb_bc_handel(struct bq25700_device *charger)
 {
 	struct bq25700_state state;
-
 	switch (charger->bc_event) {
 	case USB_BC_TYPE_SDP:
 		bq25700_enable_charger(charger,
@@ -1684,7 +1682,7 @@ static int bq25700_register_cg_nb(struct bq25700_device *charger)
 {
 	enum bc_port_type bc_type;
 	int ret;
-
+	
 	if (charger->usb_bc == 0) {
 		if (charger->cable_edev) {
 			/* Register chargers  */
@@ -1846,6 +1844,7 @@ static long bq25700_init_usb(struct bq25700_device *charger)
 	}
 	if (!charger->pd_charge_only)
 		bq25700_register_cg_nb(charger);
+	
 	bq25700_register_host_nb(charger);
 	bq25700_register_discnt_nb(charger);
 	bq25700_register_pd_nb(charger);
@@ -1985,7 +1984,7 @@ static int bq25700_probe(struct i2c_client *client,
 		dev_err(dev, "Cannot read chip ID.\n");
 		return charger->chip_id;
 	}
-
+	dev_err(dev, "read chip ID=%d.\n",charger->chip_id);
 	if (!dev->platform_data) {
 		ret = bq25700_fw_probe(charger);
 		if (ret < 0) {
