@@ -145,11 +145,6 @@
 	};
 };
 
-&backlight {
-	status = "okay";
-	enable-gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
-};
-
 &dmac_bus {
 	iram = <&iram>;
 	rockchip,force-iram;
@@ -185,7 +180,7 @@
 
 &i2s1 {
     #sound-dai-cells = <0>;
-    status = "okay";
+    status = "disabled";
 };
 
 &rk809_sound {
@@ -214,7 +209,7 @@
 
 &i2s0 {
     #sound-dai-cells = <0>;
-    status = "disabled";
+    status = "okay";
 };
 
 &tc358749x_sound {
