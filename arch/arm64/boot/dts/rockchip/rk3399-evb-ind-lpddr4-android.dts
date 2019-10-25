@@ -91,6 +91,7 @@
 			240 241 242 243 244 245 246 247
 			248 249 250 251 252 253 254 255>;
 		default-brightness-level = <200>;
+		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
 	};
 
 	vcc_lcd: vcc-lcd {
@@ -108,7 +109,6 @@
 		compatible = "simple-panel";
 		backlight = <&backlight>;
 		power-supply = <&vcc_lcd>;
-		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;
 		prepare-delay-ms = <20>;
 		enable-delay-ms = <20>;
