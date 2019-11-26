@@ -36,6 +36,15 @@ struct fixed_voltage_data {
 	struct regulator_dev *dev;
 };
 
+struct regulator_enable_gpio {
+	struct list_head list;
+	struct gpio_desc *gpiod;
+	u32 enable_count;       /* a number of enabled shared GPIO */
+	u32 request_count;      /* a number of requested shared GPIO */
+	unsigned int ena_gpio_invert:1;
+};
+/*static struct regulator_dev *g_host_port_rdev;*/
+struct regulator_enable_gpio *g_host_port_pin;
 
 /**
  * of_get_fixed_voltage_config - extract fixed_voltage_config structure info
@@ -106,6 +115,46 @@ of_get_fixed_voltage_config(struct device *dev,
 
 static struct regulator_ops fixed_voltage_ops = {
 };
+
+static ssize_t vcc5v0_dbg_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	u32 ret,val;
+
+	val = gpiod_get_value_cansleep(g_host_port_pin->gpiod);
+	ret = sprintf(buf, "%d\n", val);
+
+	return 0;
+}
+
+static ssize_t vcc5v0_dbg_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t size)
+{
+	u32 ret,cmd;
+
+	ret = sscanf(buf, "%d ", &cmd);
+	switch (cmd) {
+	case 1:
+		gpiod_set_value_cansleep(g_host_port_pin->gpiod,
+				!g_host_port_pin->ena_gpio_invert);
+		break;
+	case 0:
+		gpiod_set_value_cansleep(g_host_port_pin->gpiod,
+				g_host_port_pin->ena_gpio_invert);
+		break;
+	default:
+		pr_err ("%s,%d: cmd invalid\n", __func__, __LINE__);
+		pr_err ("1: high\n");
+		pr_err ("0: low\n");
+		break;
+	}
+
+	return size;
+}
+
+static struct kobject *vcc5v0_kobj;
+static struct device_attribute vcc5v0_attrs =
+		__ATTR(vcc5v0_dbg, 0644, vcc5v0_dbg_show, vcc5v0_dbg_store);
 
 static int reg_fixed_voltage_probe(struct platform_device *pdev)
 {
@@ -195,6 +244,13 @@ static int reg_fixed_voltage_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, drvdata);
 
+	if (!strcmp(drvdata->desc.name, "vcc5v0_host") && g_host_port_pin==NULL) {
+		vcc5v0_kobj = kobject_create_and_add("camera_test", NULL);
+
+		g_host_port_pin = drvdata->dev->ena_pin;
+		ret = sysfs_create_file(vcc5v0_kobj, &vcc5v0_attrs.attr);
+		pr_err ("%s %s sys/camera_test/vcc5v0_dbg\n", __func__, drvdata->desc.name);
+	}
 	dev_dbg(&pdev->dev, "%s supplying %duV\n", drvdata->desc.name,
 		drvdata->desc.fixed_uV);
 
