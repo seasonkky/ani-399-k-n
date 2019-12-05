@@ -301,10 +301,10 @@
 	downdifferential = <20>;
 	system-status-freq = <
 		/*system status         freq(KHz)*/
-		SYS_STATUS_NORMAL       856000
+		SYS_STATUS_NORMAL       666000
 		SYS_STATUS_REBOOT       856000
 		SYS_STATUS_SUSPEND      328000
-		SYS_STATUS_VIDEO_1080P  328000
+		SYS_STATUS_VIDEO_1080P  416000
 		SYS_STATUS_VIDEO_4K     666000
 		SYS_STATUS_VIDEO_4K_10B 856000
 		SYS_STATUS_PERFORMANCE  856000
@@ -314,9 +314,8 @@
 	>;
 	vop-bw-dmc-freq = <
 	/* min_bw(MB/s) max_bw(MB/s) freq(KHz) */
-		0       762      328000
-		763     1893     416000
-		1894    3012     666000
+		0       762      416000
+		763     3012     666000
 		3013    99999    856000
 	>;
 
@@ -337,6 +336,10 @@
 			opp-microvolt = <900000>;
 			status = "disabled";
 		};
+		opp-328000000 {
+			opp-hz = /bits/ 64 <328000000>;
+			opp-microvolt = <900000>;
+		};
 		opp-400000000 {
 			opp-hz = /bits/ 64 <400000000>;
 			opp-microvolt = <900000>;
@@ -355,6 +358,10 @@
 			opp-hz = /bits/ 64 <600000000>;
 			opp-microvolt = <900000>;
 			status = "disabled";
+		};
+		opp-666000000 {
+			opp-hz = /bits/ 64 <666000000>;
+			opp-microvolt = <900000>;
 		};
 		opp-800000000 {
 			opp-hz = /bits/ 64 <800000000>;
