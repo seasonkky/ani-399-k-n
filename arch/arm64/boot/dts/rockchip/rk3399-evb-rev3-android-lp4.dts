@@ -138,10 +138,10 @@
 	system-status-freq = <
 		/*system status         freq(KHz)*/
 		SYS_STATUS_NORMAL       666000
-		SYS_STATUS_REBOOT       856000
+		SYS_STATUS_REBOOT       666000
 		SYS_STATUS_SUSPEND      328000
-		SYS_STATUS_VIDEO_1080P  416000
-		SYS_STATUS_VIDEO_4K     666000
+		SYS_STATUS_VIDEO_1080P  666000
+		SYS_STATUS_VIDEO_4K     856000
 		SYS_STATUS_VIDEO_4K_10B 856000
 		SYS_STATUS_PERFORMANCE  856000
 		SYS_STATUS_BOOST        856000
@@ -155,7 +155,7 @@
 		3013    99999     856000
 	>;
 	auto-min-freq = <328000>;
-	auto-freq-en = <1>;
+	auto-freq-en = <0>;
 };
 
 &dmc_opp_table {
