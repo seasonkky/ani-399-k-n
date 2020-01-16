@@ -464,7 +464,7 @@
 		pinctrl-0 = <&pmic_int_l>;
 		pinctrl-1 = <&soc_slppin_slp>, <&rk809_slppin_slp>;
 		pinctrl-2 = <&soc_slppin_gpio>, <&rk809_slppin_pwrdn>;
-		pinctrl-3 = <&soc_slppin_gpio>,<&rk809_slppin_rst>;
+		pinctrl-3 = <&soc_slppin_gpio>,<&rk809_slppin_null>;
 		rockchip,system-power-controller;
 		#clock-cells = <1>;
 		pmic-reset-func = <0>;
@@ -521,6 +521,7 @@
 				regulator-min-microvolt = <750000>;
 				regulator-max-microvolt = <1350000>;
 				regulator-ramp-delay = <6001>;
+				regulator-initial-mode = <0x2>;
 				regulator-name = "vdd_center";
 				regulator-state-mem {
 					regulator-off-in-suspend;
@@ -533,6 +534,7 @@
 				regulator-min-microvolt = <750000>;
 				regulator-max-microvolt = <1350000>;
 				regulator-ramp-delay = <6001>;
+				regulator-initial-mode = <0x2>;
 				regulator-name = "vdd_cpu_l";
 				regulator-state-mem {
 					regulator-off-in-suspend;
@@ -542,6 +544,7 @@
 			vcc_ddr: DCDC_REG3 {
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-initial-mode = <0x2>;
 				regulator-name = "vcc_ddr";
 				regulator-state-mem {
 					regulator-on-in-suspend;
@@ -802,7 +805,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&fusb0_int>;
 		int-n-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-		vbus-5v-gpios = <&gpio1 18 GPIO_ACTIVE_LOW>;
+		vbus-5v-gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
 
