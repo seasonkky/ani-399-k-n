@@ -1,0 +1,393 @@
+/*
+ * Copyright (c) 2018 Fuzhou Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/dts-v1/;
+#include "rk3399-m701.dtsi"
+
+/ {
+	compatible = "rockchip,rk3399-tve1030g", "rockchip,rk3399";
+
+	vibrator {
+                compatible = "rk-vibrator-gpio";
+                vibrator-gpio = <&gpio4 RK_PD1 GPIO_ACTIVE_LOW>;
+                status = "okay";
+        };
+
+	leadcore:lead_gpio {
+                status = "okay";
+                compatible = "skyworth,leadcore";
+                pinctrl-names = "default";
+                pinctrl-0 = <&vcc_pwr>;
+                pinctrl-1 = <&lte_pwr>;
+                pinctrl-2 = <&lead_en>;
+                pinctrl-3 = <&lead_rst>;
+                VCC_4V_PWR_gpio = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+                LTE_PWR_gpio = <&gpio1 23 GPIO_ACTIVE_HIGH>;
+              	leadcore_en_gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+                leadcore_rst_gpio = <&gpio3 29 GPIO_ACTIVE_HIGH>;
+        };
+
+	leds {
+		status = "okay";
+		compatible = "gpio-leds";
+
+		Camera_PWREN {
+			gpios = <&gpio3 26 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		Camera_reset {
+			gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+		
+		Camera_PWREN2 {
+			gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		Camera_reset2 {
+			gpios = <&gpio3 25 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		DVP_PWR {
+			gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		taidou_reset {
+			gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		taidou_power {
+			gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		
+		sd_power_en {
+			gpio = <&gpio0 RK_PA1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+	};
+
+rt5640-sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,name = "rockchiprt5640c";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,widgets =
+			"Microphone", "Mic Jack",
+			"Headphone", "Headphone Jack";
+		simple-audio-card,routing =
+			"Mic Jack", "MICBIAS1",
+			"IN1P", "Mic Jack",
+			"Headphone Jack", "HPOL",
+			"Headphone Jack", "HPOR";
+		simple-audio-card,cpu {
+			sound-dai = <&i2s1>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&rt5640>;
+		};
+		
+	};
+
+	betterlife_platform: betterlife-fingerprint@ {
+		compatible = "betterlife,platform";
+		pinctrl-names = "default";
+        	pinctrl-0 = <&finger_rst>;
+        	pinctrl-1 = <&finger_int>;
+		fpreset-gpio = <&gpio3 12 0>;
+		fpint-gpio = <&gpio3 13 0>;
+		status = "okay";
+	};
+};
+
+&i2s0 {
+	status = "disabled";
+	
+};
+
+&i2s1 {
+	status = "okay";
+};
+
+
+&i2c1 {
+	status = "okay";
+	rt5640: rt5640@1c {
+		#sound-dai-cells = <0>;
+		compatible = "realtek,rt5640";
+		//compatible = "rt5640";
+		reg = <0x1c>;
+		clocks = <&cru SCLK_I2S_8CH_OUT>;
+		clock-names = "mclk";
+		realtek,in1-differential;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2s_8ch_mclk>;
+		realtek,codec-en-gpio = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+
+	
+
+};
+
+&i2c4 {
+	status = "okay";
+
+	 ak8963@0f {
+		status = "okay";
+		compatible = "ak8963";
+		pinctrl-names = "default";
+		pinctrl-0 = <&ak8963_irq_gpio>;
+		reg = <0x0f>;
+		type = <SENSOR_TYPE_COMPASS>;
+		irq-gpio = <&gpio3 2 IRQ_TYPE_EDGE_RISING>;
+		irq_enable = <0>;
+		poll_delay_ms = <30>;
+		layout = <3>;
+	};
+
+	lsm330_accel@1e {
+		status = "okay";
+		compatible = "lsm330_acc";
+		pinctrl-names = "default";
+		pinctrl-0 = <&lsm330a_irq_gpio>;
+		reg = <0x1e>;
+		irq-gpio = <&gpio3 1 IRQ_TYPE_EDGE_RISING>;
+		type = <SENSOR_TYPE_ACCEL>;
+		irq_enable = <1>;
+		poll_delay_ms = <100>;
+		power-off-in-suspend = <0>;
+		layout = <1>;
+	};
+
+	lsm330_gyro@6a {
+		status = "okay";
+		compatible = "lsm330_gyro";
+		pinctrl-names = "default";
+		pinctrl-0 = <&lsm330g_irq_gpio>;
+		reg = <0x6a>;
+		irq-gpio = <&gpio3 0 IRQ_TYPE_EDGE_RISING>;
+		type = <SENSOR_TYPE_GYROSCOPE>;
+		irq_enable = <0>;
+		power-off-in-suspend = <1>;
+		poll_delay_ms = <100>;
+	};
+    ls_em3071x: light@24 {
+         compatible = "ls_em3071x";
+         status = "okay";
+         reg = <0x24>;
+         type = <SENSOR_TYPE_LIGHT>;
+         irq_enable = <0>;
+         als_threshold_high = <100>;
+         als_threshold_low = <10>;
+         als_ctrl_gain = <2>; /* 0:x1 1:x4 2:x16 3:x64 */
+         poll_delay_ms = <100>;
+    };
+
+     ps_em3071x: proximity@48 {
+        compatible = "ps_3071x";
+        status = "disabled";
+        reg = <0x24>;
+        type = <SENSOR_TYPE_PROXIMITY>;
+        //pinctrl-names = "default";
+        //pinctrl-0 = <&gpio2_c3>;
+        //irq-gpio = <&gpio2 19 IRQ_TYPE_LEVEL_LOW>;
+        irq_enable = <0>;
+        ps_threshold_high = <0x200>;
+        ps_threshold_low = <0x100>;
+        ps_ctrl_gain = <3>; /* 0:x1 1:x4 2:x16 3:x64 */
+        ps_led_current = <3>; /* 0:12.5mA 1:25mA 2:50mA 3:100mA */
+        poll_delay_ms = <100>;
+        };
+
+	nfc-pn544@28{  
+            compatible = "nxp,pn544";
+            reg = <0x28>; 
+	    pinctrl-names = "default";
+            pinctrl-0 = <&nfc_ven>;
+            pinctrl-1 = <&nfc_irq>;
+            pinctrl-2 = <&nfc_fwd>;
+            nxp,pn544-irq = <&gpio1 9 GPIO_ACTIVE_HIGH>;//MTRSTN
+            nxp,pn544-ven = <&gpio1 24 GPIO_ACTIVE_HIGH>;//MTDI
+            interrupt-names = "nfc_irq";
+            nxp,pn544-fw-dwnld = <&gpio1 10 GPIO_ACTIVE_LOW>; //MTDO
+            status="okay";
+        };
+
+};
+
+&i2c5 {
+        status = "okay";
+	i2c-scl-rising-time-ns = <345>;
+        i2c-scl-falling-time-ns = <11>;
+        clock-frequency = <100000>;
+	gslx680: gslx680@40 {
+                compatible = "gslX680_tve";
+                reg = <0x40>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&tp_irq_gpio>;
+                pinctrl-1 = <&tp_rst_gpio>;
+                touch-gpio = <&gpio4 22 IRQ_TYPE_EDGE_RISING>;
+                reset-gpio = <&gpio4 21 GPIO_ACTIVE_HIGH>;
+                max-x = <1200>;
+                max-y = <1920>;
+                tp-size = <80>;
+                tp-supply = <&vcc3v0_tp>;
+                status = "okay";
+        };
+};
+
+&i2c6 {
+	status = "okay";
+};
+
+&isp0 {
+	status = "okay";
+};
+
+&isp1 {
+	status = "okay";
+};
+
+&dfi {
+	status = "disabled";
+};
+
+&dmc {
+        status = "disabled";
+        center-supply = <&vdd_center>;
+        system-status-freq = <
+                /*system status         freq(KHz)*/
+                SYS_STATUS_NORMAL       856000
+                SYS_STATUS_REBOOT       416000
+                SYS_STATUS_SUSPEND      416000
+                SYS_STATUS_VIDEO_1080P  416000
+                SYS_STATUS_VIDEO_4K     856000
+                SYS_STATUS_VIDEO_4K_10B 856000
+                SYS_STATUS_PERFORMANCE  856000
+                SYS_STATUS_BOOST        856000
+                SYS_STATUS_DUALVIEW     856000
+                SYS_STATUS_ISP          856000
+        >;
+        vop-bw-dmc-freq = <
+        /* min_bw(MB/s) max_bw(MB/s) freq(KHz) */
+                0       577      416000
+                578     99999    856000
+        >;
+        auto-min-freq = <416000>;
+        auto-freq-en = <1>;
+};
+
+&dmc_opp_table {
+	compatible = "operating-points-v2";
+
+	opp-200000000 {
+		opp-hz = /bits/ 64 <200000000>;
+		opp-microvolt = <900000>;
+		status = "disabled";
+	};
+	opp-300000000 {
+		opp-hz = /bits/ 64 <300000000>;
+		opp-microvolt = <900000>;
+		status = "disabled";
+	};
+	opp-400000000 {
+		opp-hz = /bits/ 64 <400000000>;
+		opp-microvolt = <900000>;
+	};
+	opp-528000000 {
+		opp-hz = /bits/ 64 <528000000>;
+		opp-microvolt = <900000>;
+		status = "disabled";
+	};
+	opp-600000000 {
+		opp-hz = /bits/ 64 <600000000>;
+		opp-microvolt = <900000>;
+		status = "disensorsabled";
+	};
+	opp-800000000 {
+		opp-hz = /bits/ 64 <800000000>;
+		opp-microvolt = <900000>;
+	};
+	opp-928000000 {
+		opp-hz = /bits/ 64 <928000000>;
+		opp-microvolt = <900000>;
+		status = "disabled";
+	};
+	opp-1056000000 {
+		opp-hz = /bits/ 64 <1056000000>;
+		opp-microvolt = <900000>;
+		status = "disabled";
+	};
+};
+
+&pinctrl {
+
+	lsm330_a {
+		lsm330a_irq_gpio: lsm330a-irq-gpio {
+			rockchip,pins = <3 1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	lsm330_g {
+		lsm330g_irq_gpio: lsm330g-irq-gpio {
+			rockchip,pins = <3 0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+        ak8963 {
+           ak8963_irq_gpio: ak8963-irq-gpio {
+               rockchip,pins = <3 2 RK_FUNC_GPIO &pcfg_pull_none>;
+           };
+       };
+	led {
+                chg_red: chg-red {
+                        rockchip,pins = <0 8 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+                chg_green: chg-green {
+                        rockchip,pins = <0 13 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+        };
+	finger {
+                finger_rst: finger-rst {
+                        rockchip,pins = <3 12 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+                finger_int: finger-int {
+                        rockchip,pins = <3 13 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+        };
+
+	nfc {
+		nfc_ven:nfc-ven {
+			rockchip,pins = <1 24 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		nfc_irq:nfc-irq {
+			rockchip,pins = <1 9 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		nfc_fwd:nfc-fwd {
+			rockchip,pins = <1 10 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	leadcore {
+                lte_pwr: lte-pwr {
+                        rockchip,pins = <1 23 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+                vcc_pwr: vcc-pwr {
+                        rockchip,pins = <1 13 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+                lead_en: lead-en {
+                        rockchip,pins = <1 0 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+                lead_rst: lead-rst {
+                        rockchip,pins = <3 29 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+        };
+};
