@@ -10,71 +10,6 @@
 / {
 	compatible = "rockchip,rk3399-tve1030g", "rockchip,rk3399";
 
-	vibrator {
-                compatible = "rk-vibrator-gpio";
-                vibrator-gpio = <&gpio4 RK_PD1 GPIO_ACTIVE_LOW>;
-                status = "okay";
-        };
-
-	leadcore:lead_gpio {
-                status = "okay";
-                compatible = "skyworth,leadcore";
-                pinctrl-names = "default";
-                pinctrl-0 = <&vcc_pwr>;
-                pinctrl-1 = <&lte_pwr>;
-                pinctrl-2 = <&lead_en>;
-                pinctrl-3 = <&lead_rst>;
-                VCC_4V_PWR_gpio = <&gpio1 13 GPIO_ACTIVE_HIGH>;
-                LTE_PWR_gpio = <&gpio1 23 GPIO_ACTIVE_HIGH>;
-              	leadcore_en_gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
-                leadcore_rst_gpio = <&gpio3 29 GPIO_ACTIVE_HIGH>;
-        };
-
-	leds {
-		status = "okay";
-		compatible = "gpio-leds";
-
-		Camera_PWREN {
-			gpios = <&gpio3 26 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		Camera_reset {
-			gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-		
-		Camera_PWREN2 {
-			gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		Camera_reset2 {
-			gpios = <&gpio3 25 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		DVP_PWR {
-			gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		taidou_reset {
-			gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		taidou_power {
-			gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
-		};
-		
-		sd_power_en {
-			gpio = <&gpio0 RK_PA1 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-	};
-
 rt5640-sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,format = "i2s";
@@ -95,16 +30,6 @@ rt5640-sound {
 			sound-dai = <&rt5640>;
 		};
 		
-	};
-
-	betterlife_platform: betterlife-fingerprint@ {
-		compatible = "betterlife,platform";
-		pinctrl-names = "default";
-        	pinctrl-0 = <&finger_rst>;
-        	pinctrl-1 = <&finger_int>;
-		fpreset-gpio = <&gpio3 12 0>;
-		fpint-gpio = <&gpio3 13 0>;
-		status = "okay";
 	};
 };
 

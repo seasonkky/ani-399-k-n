@@ -53,28 +53,7 @@
 		default-brightness-level = <128>;
 		//enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
 	};
-/*
-	es8316-sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,name = "rockchip,es8316-codec";
-		simple-audio-card,mclk-fs = <256>;
-		simple-audio-card,widgets =
-			"Microphone", "Mic Jack",
-			"Headphone", "Headphone Jack";
-		simple-audio-card,routing =
-			"Mic Jack", "MICBIAS1",
-			"IN1P", "Mic Jack",
-			"Headphone Jack", "HPOL",
-			"Headphone Jack", "HPOR";
-		simple-audio-card,cpu {
-			sound-dai = <&i2s0>;
-		};
-		simple-audio-card,codec {
-			sound-dai = <&es8316>;
-		};
-	};
-*/
+
 	rk_headset {
 		compatible = "rockchip_headset";
 		headset_gpio = <&gpio4 RK_PD4 GPIO_ACTIVE_LOW>;
@@ -96,7 +75,7 @@
 		 * - SDIO_RESET_L_WL_REG_ON
 		 * - PDN (power down when low)
 		 */
-		reset-gpios = <&gpio0 RK_PB2 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio2 RK_PD3 GPIO_ACTIVE_LOW>;
 	};
 
 	vcc_sys: vcc-sys {
@@ -153,8 +132,8 @@
 		rockchip,grf = <&grf>;
 		wifi_chip_type = "ap6255";
 		sdio_vref = <1800>;
-		WIFI,host_wake_irq = <&gpio0 RK_PA3 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
+		WIFI,host_wake_irq = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;
+		status = "okay";
 	};
 
 	wireless-bluetooth {
@@ -166,9 +145,9 @@
 		pinctrl-0 = <&uart0_rts>;
 		pinctrl-1 = <&uart0_gpios>;
 		BT,reset_gpio    = <&gpio0 RK_PB1 GPIO_ACTIVE_HIGH>;
-		BT,wake_gpio     = <&gpio2 RK_PD2 GPIO_ACTIVE_HIGH>;
-		BT,wake_host_irq = <&gpio0 RK_PA4 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
+		BT,wake_gpio     = <&gpio2 RK_PD4 GPIO_ACTIVE_HIGH>;
+		BT,wake_host_irq = <&gpio4 RK_PD3 GPIO_ACTIVE_HIGH>;
+		status = "okay";
 	};
 };
 
@@ -281,11 +260,11 @@
 		reg = <0>;
 		backlight = <&backlight>;
 		power-supply = <&vcc3v3_s0>;
-		reset-gpios = <&gpio4 29 GPIO_ACTIVE_LOW>;
-		enable-gpios = <&gpio2 27 GPIO_ACTIVE_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&lcd_rst_gpio>;
-		pinctrl-1 = <&lcd_ena_gpio>;
+		//reset-gpios = <&gpio4 29 GPIO_ACTIVE_LOW>;
+		//enable-gpios = <&gpio2 27 GPIO_ACTIVE_LOW>;
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&lcd_rst_gpio>;
+		//pinctrl-1 = <&lcd_ena_gpio>;
 		reset-delay-ms = <200>;
                 init-delay-ms = <20>;
                 enable-delay-ms = <120>;
@@ -800,7 +779,7 @@ rk818: pmic@1c {
 
 	sdio-pwrseq {
 		wifi_enable_h: wifi-enable-h {
-			rockchip,pins = <0 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <2 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
@@ -891,20 +870,21 @@ rk818: pmic@1c {
 };
 
 &sdio0 {
-	status = "okay";
-        max-frequency = <50000000>;
-        supports-sd;
+        clock-frequency = <150000000>;
+        clock-freq-min-max = <200000 150000000>;
+        supports-sdio;
         bus-width = <4>;
-        sd-uhs-sdr12;
+        disable-wp;
         cap-sd-highspeed;
-        card-detect-delay = <1000>;
-        disable-wp;                     /* wp not hooked up */
+        cap-sdio-irq;
+        keep-power-in-suspend;
+        mmc-pwrseq = <&sdio_pwrseq>;
+        non-removable;
         num-slots = <1>;
         pinctrl-names = "default";
-        pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk &sdio0_int>;
-        //vmmc-supply = <&vcc_sd>;
-        //vqmmc-supply = <&vccio_sd>;
-        cd-gpios = <&gpio2 26 GPIO_ACTIVE_LOW>;
+        pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk>;
+        sd-uhs-sdr104;
+        status = "okay";
 };
 
 &sdmmc {
@@ -973,13 +953,6 @@ rk818: pmic@1c {
         #address-cells = <1>;
         #size-cells = <0>;
         dma-names = "tx", "rx";
-
-        betterlife-spi@20{
-                compatible = "betterlife,spi";
-                reg = <0>;
-                spi-max-frequency = <12000000>;
-                status = "okay";
-        };
 };
 
 &uart0 {
