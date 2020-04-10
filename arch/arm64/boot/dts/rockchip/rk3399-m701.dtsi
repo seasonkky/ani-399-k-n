@@ -11,6 +11,7 @@
 #include "rk3399-android.dtsi"
 #include "rk3399-opp.dtsi"
 #include "rk3399-vop-clk-set.dtsi"
+#include "screen-timing/panel-edp1920x1080.dtsi"
 
 / {
 	backlight: backlight {
@@ -51,7 +52,7 @@
 			248 249 250 251 252 253 254 255
 		>;
 		default-brightness-level = <128>;
-		//enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+		enable-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
 	};
 
 	rk_headset {
@@ -279,69 +280,6 @@
 
 
 &dp_in_vopb {
-	status = "disabled";
-};
-
-&dsi {
-	status = "okay";
-	rockchip,lane-rate = <1000>;
-	dsi_panel: panel@0 {
-		status = "okay";
-		compatible = "simple-panel-dsi";
-		reg = <0>;
-		backlight = <&backlight>;
-		power-supply = <&vcc3v3_s0>;
-		//reset-gpios = <&gpio4 29 GPIO_ACTIVE_LOW>;
-		//enable-gpios = <&gpio2 27 GPIO_ACTIVE_LOW>;
-		//pinctrl-names = "default";
-		//pinctrl-0 = <&lcd_rst_gpio>;
-		//pinctrl-1 = <&lcd_ena_gpio>;
-		reset-delay-ms = <200>;
-                init-delay-ms = <20>;
-                enable-delay-ms = <120>;
-                prepare-delay-ms = <120>;
-		dsi,flags = <(MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST |
-			      MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_EOT_PACKET)>;
-		dsi,format = <MIPI_DSI_FMT_RGB888>;
-		dsi,lanes  = <4>;
-		width-mm = <108>;
-		height-mm = <173>;
-		
-		panel-init-sequence = [
-			05 32 01 11
-			05 c8 01 29
-		];
-		panel-exit-sequence = [
-			05 32 01 28
-                        05 c8 01 10
-		];
-
-		disp_timings: display-timings {
-			native-mode = <&timing0>;
-			timing0: timing0 {
-				 clock-frequency = <150000000>;
-				 hactive = <1200>;
-				 vactive = <1920>;
-				 hsync-len = <4>;
-				 hback-porch = <32>;
-				 hfront-porch = <110>;
-
-				 vsync-len = <4>;
-				 vback-porch = <14>;
-				 vfront-porch = <11>;
-
-				 hsync-active = <0>;
-				 vsync-active = <0>;
-				 de-active = <0>;
-				 pixelclk-active = <0>;
-				 screen-width = <186>;
-                		 screen-hight = <120>;
-			};
-		};
-	};
-};
-
-&dsi_in_vopl {
 	status = "disabled";
 };
 
@@ -879,11 +817,6 @@ rk818: pmic@1c {
 	rockchip,power-ctrl =
 		<&gpio1 RK_PC1 GPIO_ACTIVE_HIGH>,
 		<&gpio1 RK_PB6 GPIO_ACTIVE_HIGH>;
-};
-
-&route_dsi {
-	status = "okay";
-	logo,mode = "center";
 };
 
 &saradc {
