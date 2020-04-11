@@ -10,7 +10,7 @@
 / {
 	compatible = "rockchip,rk3399-tve1030g", "rockchip,rk3399";
 
-rt5640-sound {
+	rt5640-sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,format = "i2s";
 		simple-audio-card,name = "rockchiprt5640c";
@@ -29,7 +29,20 @@ rt5640-sound {
 		simple-audio-card,codec {
 			sound-dai = <&rt5640>;
 		};
+	};
+
+	leds {
+                status = "okay";
+                compatible = "gpio-leds";
 		
+		4g_en {
+                        gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+                };
+		4g_rst {
+			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+		};
 	};
 };
 
