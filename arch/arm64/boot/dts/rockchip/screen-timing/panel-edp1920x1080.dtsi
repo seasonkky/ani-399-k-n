@@ -94,10 +94,11 @@ panel:panel {
 	status = "disabled";
 };
 
-&hdmi_in_vopl {
-        status = "disabled";
+&edp_in_vopb {
+        status = "okay";
 };
 
 &route_edp {
 	status = "okay";
+	connect = <&vopb_out_edp>;
 };

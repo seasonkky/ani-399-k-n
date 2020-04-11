@@ -47,6 +47,10 @@
 			gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
                         default-state = "on";
 		};
+		3v3_pwr {
+			gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+		};
 	};
 };
 

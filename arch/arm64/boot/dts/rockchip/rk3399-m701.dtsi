@@ -11,7 +11,7 @@
 #include "rk3399-android.dtsi"
 #include "rk3399-opp.dtsi"
 #include "rk3399-vop-clk-set.dtsi"
-//#include "screen-timing/panel-edp1920x1080.dtsi"
+#include "screen-timing/panel-edp1920x1080.dtsi"
 
 / {
 	backlight: backlight {
@@ -233,6 +233,10 @@
 
 &hdmi_in_vopb {
 	status = "disabled";
+};
+
+&hdmi_in_vopl {
+        status = "okay";
 };
 
 &i2c0 {
