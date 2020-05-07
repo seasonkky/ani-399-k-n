@@ -60,6 +60,14 @@ config ROCKCHIP_DW_MIPI_DSI
 	 enable MIPI DSI on RK3288 based SoC, you should selet this
 	 option.
 
+config DRM_ROCKCHIP_DSI
+	bool "Synopsys DesignWare Cores MIPI-DSI Driver"
+	depends on DRM_ROCKCHIP
+	select DRM_PANEL
+	select DRM_MIPI_DSI
+	help
+	  Choose this option if you want to used Synopsys DWC MIPI-DSI for DRM.
+
 config ROCKCHIP_ANALOGIX_DP
 	tristate "Rockchip specific extensions for Analogix DP driver"
 	depends on DRM_ROCKCHIP
