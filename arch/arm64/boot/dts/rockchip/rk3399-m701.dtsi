@@ -212,6 +212,17 @@
         status = "okay";
 };
 
+&pcie_phy {
+        status = "okay";
+};
+
+&pcie0 {
+        ep-gpios = <&gpio3 RK_PB2 GPIO_ACTIVE_HIGH>;
+        num-lanes = <4>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&pcie_clkreqn>;
+        status = "okay";
+};
 
 &dp_in_vopb {
 	status = "disabled";

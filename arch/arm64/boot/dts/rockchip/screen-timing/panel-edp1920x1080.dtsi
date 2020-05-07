@@ -99,6 +99,6 @@ panel:panel {
 };
 
 &route_edp {
-	status = "okay";
+	status = "disabled";
 	connect = <&vopb_out_edp>;
 };
