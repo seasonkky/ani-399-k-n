@@ -51,6 +51,18 @@
 			gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
                         default-state = "on";
 		};
+		dvp_pwr {
+			gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+		};
+		rst_f {
+			gpios = <&gpio2 3 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+		};
+		pwn_f {
+			gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+		};
 	};
 };
 
@@ -66,10 +78,12 @@
 
 &i2c1 {
 	status = "okay";
+	i2c-scl-rising-time-ns = <140>;
+        i2c-scl-falling-time-ns = <30>;
+
 	rt5640: rt5640@1c {
 		#sound-dai-cells = <0>;
 		compatible = "realtek,rt5640";
-		//compatible = "rt5640";
 		reg = <0x1c>;
 		clocks = <&cru SCLK_I2S_8CH_OUT>;
 		clock-names = "mclk";
@@ -79,6 +93,21 @@
 		realtek,codec-en-gpio = <&gpio0 11 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
+
+	tc358749x: tc358749x@0f {
+                compatible = "toshiba,tc358749x";
+                reg = <0x0f>;
+                //power-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
+                //power18-gpios = <&gpio2 9 GPIO_ACTIVE_HIGH>;
+                //power33-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+                //csi-ctl-gpios = <&gpio2 10 GPIO_ACTIVE_HIGH>;
+                //stanby-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
+                reset-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+                int-gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&hdmiin_gpios>;
+                status = "okay";
+        };
 };
 
 &i2c6 {
@@ -86,11 +115,19 @@
 };
 
 &isp0 {
-	status = "disabled";
+	status = "okay";
 };
 
 &isp1 {
-	status = "disabled";
+	status = "okay";
+};
+
+&isp0_mmu {
+        status = "okay";
+};
+
+&isp1_mmu {
+        status = "okay";
 };
 
 &dfi {
@@ -243,6 +280,14 @@
                 };
                 lead_rst: lead-rst {
                         rockchip,pins = <3 29 RK_FUNC_GPIO &pcfg_pull_none>;
+                };
+        };
+
+	hdmiin {
+                hdmiin_gpios: hdmiin_gpios {
+                rockchip,pins =
+                                <2 5 RK_FUNC_GPIO &pcfg_pull_none>,
+                                <2 4 RK_FUNC_GPIO &pcfg_pull_none>;
                 };
         };
 };
