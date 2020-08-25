@@ -29,6 +29,7 @@
 #include <linux/prefetch.h>
 #include <linux/ipv6.h>
 #include <net/ip6_checksum.h>
+#include <linux/soc/rockchip/rk_vendor_storage.h>
 
 #include <asm/io.h>
 #include <asm/irq.h>
@@ -165,6 +166,8 @@ enum rtl_tx_desc_version {
 	RTL_TD_0	= 0,
 	RTL_TD_1	= 1,
 };
+
+u8 eth0_mac_addr[6] = {0,0,0,0,0,0};
 
 #define JUMBO_1K	ETH_DATA_LEN
 #define JUMBO_4K	(4*1024 - ETH_HLEN - 2)
@@ -324,6 +327,9 @@ enum cfg_version {
 };
 
 static const struct pci_device_id rtl8169_pci_tbl[] = {
+	{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK,	0x0000), 0, 0, RTL_CFG_1 },
+	{ PCI_VDEVICE(REALTEK,	0x2502), RTL_CFG_1 },
+	{ PCI_VDEVICE(REALTEK,	0x2600), RTL_CFG_1 },
 	{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK,	0x8129), 0, 0, RTL_CFG_0 },
 	{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK,	0x8136), 0, 0, RTL_CFG_2 },
 	{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK,	0x8161), 0, 0, RTL_CFG_1 },
@@ -759,7 +765,7 @@ struct rtl8169_tc_offsets {
 };
 
 enum rtl_flag {
-	RTL_FLAG_TASK_ENABLED,
+	RTL_FLAG_TASK_ENABLED = 0,
 	RTL_FLAG_TASK_SLOW_PENDING,
 	RTL_FLAG_TASK_RESET_PENDING,
 	RTL_FLAG_TASK_PHY_PENDING,
@@ -4832,6 +4838,9 @@ static void rtl_pll_power_down(struct rtl8169_private *tp)
 static void rtl_pll_power_up(struct rtl8169_private *tp)
 {
 	rtl_generic_op(tp, tp->pll_power_ops.up);
+
+	/* give MAC/PHY some time to resume */
+	msleep(20);
 }
 
 static void rtl_init_pll_power_ops(struct rtl8169_private *tp)
@@ -7537,17 +7546,15 @@ static int rtl8169_poll(struct napi_struct *napi, int budget)
 	struct rtl8169_private *tp = container_of(napi, struct rtl8169_private, napi);
 	struct net_device *dev = tp->dev;
 	u16 enable_mask = RTL_EVENT_NAPI | tp->event_slow;
-	int work_done= 0;
+	int work_done;
 	u16 status;
 
 	status = rtl_get_events(tp);
 	rtl_ack_events(tp, status & ~tp->event_slow);
 
-	if (status & RTL_EVENT_NAPI_RX)
-		work_done = rtl_rx(dev, tp, (u32) budget);
+	work_done = rtl_rx(dev, tp, (u32) budget);
 
-	if (status & RTL_EVENT_NAPI_TX)
-		rtl_tx(dev, tp);
+	rtl_tx(dev, tp);
 
 	if (status & tp->event_slow) {
 		enable_mask &= ~tp->event_slow;
@@ -7615,7 +7622,8 @@ static int rtl8169_close(struct net_device *dev)
 	rtl8169_update_counters(dev);
 
 	rtl_lock_work(tp);
-	clear_bit(RTL_FLAG_TASK_ENABLED, tp->wk.flags);
+	/* Clear all task flags */
+	bitmap_zero(tp->wk.flags, RTL_FLAG_MAX);
 
 	rtl8169_down(dev);
 	rtl_unlock_work(tp);
@@ -7645,14 +7653,50 @@ static void rtl8169_netpoll(struct net_device *dev)
 }
 #endif
 
+static int rk_set_vendor_mac_address(struct net_device *dev,void *p)
+{
+
+  struct rtl8169_private *tp = netdev_priv(dev);
+  int i,ret;
+
+  printk("%s",__func__);
+
+       ret = rk_vendor_read(BT_MAC_ID, eth0_mac_addr, 6);
+       if (ret != 6 || is_zero_ether_addr(eth0_mac_addr)) {
+                printk("%s: rk_vendor_read eth mac address failed (%d)\n",__func__, ret);               
+               random_ether_addr(eth0_mac_addr);
+       }
+
+       printk("get vendor mac address:");
+       ether_addr_copy(dev->dev_addr,eth0_mac_addr);
+       rtl_rar_set(tp, dev->dev_addr);
+       
+       for(i=0;i<6;i++){
+               printk("%02x",eth0_mac_addr[i]);
+       }
+ 
+
+ return 0;
+
+}
+
 static int rtl_open(struct net_device *dev)
 {
 	struct rtl8169_private *tp = netdev_priv(dev);
 	void __iomem *ioaddr = tp->mmio_addr;
 	struct pci_dev *pdev = tp->pci_dev;
-	int retval = -ENOMEM;
+	int i,retval = -ENOMEM;
 
 	pm_runtime_get_sync(&pdev->dev);
+
+// To read chip mac,if no madAddress to rewrite again
+       for (i = 0; i < ETH_ALEN; i++)
+               dev->dev_addr[i] = RTL_R8(MAC0 + i);
+       
+       if(!is_valid_ether_addr(eth0_mac_addr) || is_zero_ether_addr(dev->dev_addr)){
+
+           rk_set_vendor_mac_address(dev,tp);
+       }
 
 	/*
 	 * Rx and Tx descriptors needs 256 bytes alignment.
@@ -7792,7 +7836,9 @@ static void rtl8169_net_suspend(struct net_device *dev)
 
 	rtl_lock_work(tp);
 	napi_disable(&tp->napi);
-	clear_bit(RTL_FLAG_TASK_ENABLED, tp->wk.flags);
+	/* Clear all task flags */
+	bitmap_zero(tp->wk.flags, RTL_FLAG_MAX);
+
 	rtl_unlock_work(tp);
 
 	rtl_pll_power_down(tp);
@@ -8154,7 +8200,7 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct net_device *dev;
 	void __iomem *ioaddr;
 	int chipset, i;
-	int rc;
+	int rc,ret;
 
 	if (netif_msg_drv(&debug)) {
 		printk(KERN_INFO "%s Gigabit Ethernet driver %s loaded\n",
@@ -8328,7 +8374,7 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	u64_stats_init(&tp->tx_stats.syncp);
 
 	/* Get MAC address */
-	if (tp->mac_version == RTL_GIGA_MAC_VER_35 ||
+	/*if (tp->mac_version == RTL_GIGA_MAC_VER_35 ||
 	    tp->mac_version == RTL_GIGA_MAC_VER_36 ||
 	    tp->mac_version == RTL_GIGA_MAC_VER_37 ||
 	    tp->mac_version == RTL_GIGA_MAC_VER_38 ||
@@ -8343,14 +8389,34 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	    tp->mac_version == RTL_GIGA_MAC_VER_48 ||
 	    tp->mac_version == RTL_GIGA_MAC_VER_49 ||
 	    tp->mac_version == RTL_GIGA_MAC_VER_50 ||
-	    tp->mac_version == RTL_GIGA_MAC_VER_51) {
+	    tp->mac_version == RTL_GIGA_MAC_VER_51)*/ {
 		u16 mac_addr[3];
 
 		*(u32 *)&mac_addr[0] = rtl_eri_read(tp, 0xe0, ERIAR_EXGMAC);
 		*(u16 *)&mac_addr[2] = rtl_eri_read(tp, 0xe4, ERIAR_EXGMAC);
+	
+		//if(!is_valid_ether_addr((u8 *)mac_addr))
+               {
+                        ret = rk_vendor_read(BT_MAC_ID, eth0_mac_addr, 6);
+                     if (ret != 6 || is_zero_ether_addr(eth0_mac_addr)) {
+                       printk("%s: rk_vendor_read eth mac address failed (%d)\n",__func__, ret);               
+                       random_ether_addr(eth0_mac_addr);
+                       
+                       }
+               }
+               *(u32 *)&mac_addr[0] = (eth0_mac_addr[3] | eth0_mac_addr[2] << 8 | eth0_mac_addr[1] << 16 | eth0_mac_addr[0] << 24);
+               *(u16 *)&mac_addr[2] = (eth0_mac_addr[4] << 8 | eth0_mac_addr[5]);
+               
+               printk("%s flash mac:",__func__);
+               for(i=0;i<3;i++){
+                       printk("%04x ",mac_addr[i]);
+               }
 
-		if (is_valid_ether_addr((u8 *)mac_addr))
+		//if (is_valid_ether_addr((u8 *)mac_addr))
+		{
+			ether_addr_copy(dev->dev_addr,eth0_mac_addr);
 			rtl_rar_set(tp, (u8 *)mac_addr);
+		}
 	}
 	for (i = 0; i < ETH_ALEN; i++)
 		dev->dev_addr[i] = RTL_R8(MAC0 + i);
@@ -8411,11 +8477,11 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 		goto err_out_msi_4;
 	}
 
+	pci_set_drvdata(pdev, dev);
+
 	rc = register_netdev(dev);
 	if (rc < 0)
 		goto err_out_cnt_5;
-
-	pci_set_drvdata(pdev, dev);
 
 	netif_info(tp, probe, dev, "%s at 0x%p, %pM, XID %08x IRQ %d\n",
 		   rtl_chip_infos[chipset].name, ioaddr, dev->dev_addr,
